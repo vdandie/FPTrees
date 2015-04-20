@@ -20,7 +20,6 @@ import java.util.Map;
 public class FPT {
 
   private FrequentPatternTreeNode root;
-  private HashMap<String, LinkedList<FrequentPatternTreeNode>> node_link = new HashMap<>();
   private ArrayList<String> combinations = new ArrayList<>();
   private ArrayList<String> tree = new ArrayList<>();
 
@@ -51,7 +50,6 @@ public class FPT {
             String name = s[i] + " " + i;
 
             if (!values.containsKey(name)) {
-            	node_link.put(name, new LinkedList<>());
               values.put(name, 1);
             } else {
               values.put(name, values.get(name) + 1);
@@ -83,11 +81,7 @@ public class FPT {
       }
       insert(keys);
     }
-    
-    for(Map.Entry<String, LinkedList<FrequentPatternTreeNode>> entry : node_link.entrySet()) {
-      initialize_node_link(entry.getKey(), root);
-    }
-    
+
     print(root, "", threshold, "");
 
     for (String s : combinations) {
@@ -96,17 +90,6 @@ public class FPT {
 
     for (String s : tree) {
       System.out.println(s);
-    }
-  }
-
-  private void initialize_node_link(String name, FrequentPatternTreeNode F){
-  	if (F.get_children() != null) {
-      for (Map.Entry<FrequentPatternTreeNode, Integer> entry : F.get_children().entrySet()) {
-        if (entry.getKey().get_name().equals(name)) {
-        	node_link.get(name).add(entry.getKey());
-        }
-        initialize_node_link(name, entry.getKey());
-      }
     }
   }
 
@@ -157,11 +140,27 @@ public class FPT {
   private void print(FrequentPatternTreeNode F, String tabs, int threshold, String combo) {
     if (F.get_children() != null) {
       for (Map.Entry<FrequentPatternTreeNode, Integer> entry : F.get_children().entrySet()) {
-        if (entry.getValue() >= threshold) {
+        int value = F.find_occurances_of_node(entry.getKey());
+
+        if (value > 1) {
+          int sum = F.find_sum_of_values_from_node(entry.getKey());
+          
+          if (sum >= threshold) {
+            tree.add(tabs + "[" + entry.getKey().get_name() + "]:" + entry.getValue());
+            
+            if (combo.length() > 6) { // Size of a string for a single combination
+              combinations.add("[ " + combo + " (" + entry.getKey().get_name() + "): " + sum + " ]");
+            }
+            
+            print(entry.getKey(), tabs + "\t", threshold, combo + " (" + entry.getKey().get_name() + ") ");
+          }
+        } else if (entry.getValue() >= threshold) {
           tree.add(tabs + "[" + entry.getKey().get_name() + "]:" + entry.getValue());
+          
           if (combo.length() > 6) { // Size of a string for a single combination
             combinations.add("[ " + combo + " (" + entry.getKey().get_name() + "): " + entry.getValue() + " ]");
           }
+
           print(entry.getKey(), tabs + "\t", threshold, combo + " (" + entry.getKey().get_name() + ") ");
         }
       }
@@ -217,5 +216,45 @@ class FrequentPatternTreeNode {
       }
     }
     return null;
+  }
+
+  int count;
+
+  public int find_occurances_of_node(FrequentPatternTreeNode node) {
+    count = 0;
+    find_occurances_of_node(this, node);
+
+    return count;
+  }
+
+  private void find_occurances_of_node(FrequentPatternTreeNode recurse, FrequentPatternTreeNode node) {
+    if (recurse.get_children() != null) {
+      for (Map.Entry<FrequentPatternTreeNode, Integer> entry : recurse.children.entrySet()) {
+        if (entry.getKey().get_name().equals(node.get_name())) {
+          count++;
+        }
+        find_occurances_of_node(entry.getKey(), node);
+      }
+    }
+  }
+
+  int sum;
+
+  public int find_sum_of_values_from_node(FrequentPatternTreeNode node) {
+    sum = 0;
+    find_sum_of_values_from_node(this, node);
+
+    return sum;
+  }
+
+  private void find_sum_of_values_from_node(FrequentPatternTreeNode recurse, FrequentPatternTreeNode node) {
+    if (recurse.get_children() != null) {
+      for (Map.Entry<FrequentPatternTreeNode, Integer> entry : recurse.children.entrySet()) {
+        if (entry.getKey().get_name().equals(node.get_name())) {
+          sum += entry.getValue();
+        }
+        find_sum_of_values_from_node(entry.getKey(), node);
+      }
+    }
   }
 }
