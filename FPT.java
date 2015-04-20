@@ -151,12 +151,6 @@ class FrequentPatternTreeNode {
     return children;
   }
 
-  public int get_frequency() {
-    int sum = 0;
-    sum = children.entrySet().stream().map((child) -> child.getValue()).reduce(sum, Integer::sum);
-    return sum;
-  }
-
   public String get_name() {
     return name;
   }
