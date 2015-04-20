@@ -12,10 +12,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class FPT {
 
@@ -65,19 +64,57 @@ public class FPT {
       }
       
       for (int i = 0; i < record.length; i++) {
-        for (int j = i + 1; j < record.length - 1; i++) {
+        for (int j = i + 1; j < record.length - 1; j++) {
           if (values.get(keys[i]) < values.get(keys[j])) {
             String temp = keys[i];
             keys[i] = keys[j];
             keys[j] = temp;
-
-            for (String s : keys) {
-              System.out.print(s + " ");
-            }
-            System.out.println();
           }
         }
+        
+        insert(keys);
       }
+    }
+  }
+  
+  private void insert(String[] record) {
+    if (root == null) {
+      root = new FrequentPatternTreeNode(null);
+      insert(root, record);
+    } else {
+      insert(root, record);
+    }
+  }
+  
+  private void insert(FrequentPatternTreeNode F, String[] S) {
+    String[] substr;
+    
+    if (S.length == 0) {
+      return;
+    } else if (S.length > 1) {
+      substr =  Arrays.copyOfRange(S, 1, S.length);
+    } else {
+      substr = new String[]{S[0]};
+    }
+    
+    
+    if(F.get_children() == null) {
+      FrequentPatternTreeNode newNode = new FrequentPatternTreeNode(null);
+      newNode.set_name(S[0]);
+      F.set_new_child(newNode);
+      
+      insert(newNode,substr);
+    } else {
+      FrequentPatternTreeNode lookup = F.find_node(S[0]);
+      
+      if (lookup != null) {
+        F.increment_child_frequency(lookup);
+      } else {
+        F.set_new_child(lookup);
+      }
+      
+      if(substr.length != 1)
+        insert(lookup, substr);
     }
   }
 }
@@ -110,6 +147,9 @@ class FrequentPatternTreeNode {
   }
 
   public void set_new_child(FrequentPatternTreeNode f) {
+    if (children == null) 
+      children = new HashMap<>();
+    
     if (!children.containsKey(f)) {
       children.put(f, 1);
     } else {
@@ -123,6 +163,15 @@ class FrequentPatternTreeNode {
     } else {
       System.out.println("Error: 'Key (" + f.get_name() + ") in node (" + get_name() + ") does not exist.' ");
     }
+  }
+  
+  public FrequentPatternTreeNode find_node(String name) {
+    for (Map.Entry<FrequentPatternTreeNode, Integer> entry : children.entrySet()) {
+      if(entry.getKey().get_name().equals(name)) {
+        return entry.getKey();
+      }
+    }
+    return null;
   }
 }
 
