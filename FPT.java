@@ -20,7 +20,7 @@ import java.util.Map;
 public class FPT {
 
   private FrequentPatternTreeNode root;
-  private HashMap<String, LinkedList<FrequentPatternTreeNode>> node_link;
+  private HashMap<String, LinkedList<FrequentPatternTreeNode>> node_link = new HashMap<>();
   private ArrayList<String> combinations = new ArrayList<>();
   private ArrayList<String> tree = new ArrayList<>();
 
@@ -51,7 +51,7 @@ public class FPT {
             String name = s[i] + " " + i;
 
             if (!values.containsKey(name)) {
-            	node_link.put(name, null);
+            	node_link.put(name, new LinkedList<>());
               values.put(name, 1);
             } else {
               values.put(name, values.get(name) + 1);
@@ -85,7 +85,7 @@ public class FPT {
     }
     
     for(Map.Entry<String, LinkedList<FrequentPatternTreeNode>> entry : node_link.entrySet()) {
-      intialize_node_link(entry.getKey(), root);
+      initialize_node_link(entry.getKey(), root);
     }
     
     print(root, "", threshold, "");
@@ -159,10 +159,9 @@ public class FPT {
       for (Map.Entry<FrequentPatternTreeNode, Integer> entry : F.get_children().entrySet()) {
         if (entry.getValue() >= threshold) {
           tree.add(tabs + "[" + entry.getKey().get_name() + "]:" + entry.getValue());
-          if (combo.length() > 6) {
+          if (combo.length() > 6) { // Size of a string for a single combination
             combinations.add("[ " + combo + " (" + entry.getKey().get_name() + "): " + entry.getValue() + " ]");
           }
-
           print(entry.getKey(), tabs + "\t", threshold, combo + " (" + entry.getKey().get_name() + ") ");
         }
       }
