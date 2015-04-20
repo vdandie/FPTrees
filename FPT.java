@@ -7,11 +7,66 @@
  * @author Daniel Swain Jr
  *
  */
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class FPT {
 
+  private FrequentPatternTreeNode root;
+
+  public FPT() {
+    root = null;
+  }
+
+  public void run() {
+    File data_file = new File("dataset.csv");
+    ArrayList<int[]> data_set = new ArrayList<>();
+    TreeMap<String, Integer> values = new TreeMap<>();
+
+    try (BufferedReader br = new BufferedReader(new FileReader(data_file))) {
+      String line;
+      
+      while ((line = br.readLine()) != null) {
+        
+        if (!line.startsWith("N")) {
+          int[] record = new int[7];
+          String[] s = line.split(",");
+          
+          for (int i = 0; i < s.length; i++) {
+            record[i] = Integer.parseInt(s[i]);
+            String name = s[i] + " " + i;
+            
+            if (!values.containsKey(name)) {
+              values.put(name, 1);
+            } else {
+              values.put(name, values.get(name) + 1);
+            }
+          }
+          
+          data_set.add(record);
+        }
+      }
+    } catch (IOException ex) {
+      System.out.println("Error: File(" + data_file.getName() + ") could not be read. ");
+    }
+    
+    ValueComparator sorted = new ValueComparator(values);
+    System.out.println(values);
+    values = new TreeMap<>(sorted);
+    System.out.println(values);
+    
+    for(int[] record : data_set) {
+      // Insert the record into the FPT according to sort
+      
+    }
+  }
 }
 
 class FrequentPatternTreeNode {
@@ -32,28 +87,45 @@ class FrequentPatternTreeNode {
     sum = children.entrySet().stream().map((child) -> child.getValue()).reduce(sum, Integer::sum);
     return sum;
   }
-  
+
   public String get_name() {
     return name;
   }
-  
+
   public void set_name(String n) {
     name = n;
   }
 
   public void set_new_child(FrequentPatternTreeNode f) {
     if (!children.containsKey(f)) {
-      children.put(f, 0);
+      children.put(f, 1);
     } else {
       System.out.println("Error: 'Key (" + f.get_name() + ") already exists in node (" + get_name() + ").' ");
     }
   }
-  
+
   public void increment_child_frequency(FrequentPatternTreeNode f) {
-    if(children.containsKey(f)) {
+    if (children.containsKey(f)) {
       children.put(f, children.get(f) + 1);
     } else {
       System.out.println("Error: 'Key (" + f.get_name() + ") in node (" + get_name() + ") does not exist.' ");
     }
   }
+}
+
+class ValueComparator implements Comparator<String> {
+
+    Map<String, Integer> base;
+    public ValueComparator(Map<String, Integer> base) {
+        this.base = base;
+    }
+
+    // Note: this comparator imposes orderings that are inconsistent with equals.    
+    public int compare(String a, String b) {
+        if (base.get(a) >= base.get(b)) {
+            return -1;
+        } else {
+            return 1;
+        } // returning 0 would merge keys
+    }
 }
