@@ -28,48 +28,58 @@ public class FPT {
   public void run() {
     File data_file = new File("dataset.csv");
     ArrayList<int[]> data_set = new ArrayList<>();
-    HashMap<String, Integer> unsorted_values = new HashMap<>();
+    HashMap<String, Integer> values = new HashMap<>();
 
     try (BufferedReader br = new BufferedReader(new FileReader(data_file))) {
       String line;
-      
+
       while ((line = br.readLine()) != null) {
-        
+
         if (!line.startsWith("N")) {
           int[] record = new int[7];
           String[] s = line.split(",");
-          
+
           for (int i = 0; i < s.length; i++) {
             record[i] = Integer.parseInt(s[i]);
             String name = s[i] + " " + i;
-            
-            if (!unsorted_values.containsKey(name)) {
-              unsorted_values.put(name, 1);
+
+            if (!values.containsKey(name)) {
+              values.put(name, 1);
             } else {
-              unsorted_values.put(name, unsorted_values.get(name) + 1);
+              values.put(name, values.get(name) + 1);
             }
           }
-          
+
           data_set.add(record);
         }
       }
     } catch (IOException ex) {
       System.out.println("Error: File(" + data_file.getName() + ") could not be read. ");
     }
-    
-    Map values = sortByValue(unsorted_values);
-    System.out.println(values);
-    
-    for(int[] record : data_set) {
-      // Insert the record into the FPT according to sort
+
+    for (int[] record : data_set) {
+      String[] keys = new String[record.length];
+
+      for (int i = 0; i < record.length; i++) {
+        keys[i] = record[i] + " " + i;
+      }
+      
+      for (int i = 0; i < record.length; i++) {
+        for (int j = i + 1; j < record.length - 1; i++) {
+          if (values.get(keys[i]) < values.get(keys[j])) {
+            String temp = keys[i];
+            keys[i] = keys[j];
+            keys[j] = temp;
+
+            for (String s : keys) {
+              System.out.print(s + " ");
+            }
+            System.out.println();
+          }
+        }
+      }
     }
   }
-  
-  public static Map sortByValue(Map unsortedMap) {
-		Map sortedMap = new TreeMap(new ValueComparator(unsortedMap));
-		sortedMap.putAll(unsortedMap);
-		return sortedMap;
-	}
 }
 
 class FrequentPatternTreeNode {
@@ -116,17 +126,3 @@ class FrequentPatternTreeNode {
   }
 }
 
-class ValueComparator implements Comparator {
- 
-	Map map;
- 
-	public ValueComparator(Map map) {
-		this.map = map;
-	}
- 
-	public int compare(Object keyA, Object keyB) {
-		Comparable valueA = (Comparable) map.get(keyA);
-		Comparable valueB = (Comparable) map.get(keyB);
-		return valueB.compareTo(valueA);
-	}
-}
