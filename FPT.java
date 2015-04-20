@@ -28,7 +28,7 @@ public class FPT {
   public void run() {
     File data_file = new File("dataset.csv");
     ArrayList<int[]> data_set = new ArrayList<>();
-    TreeMap<String, Integer> values = new TreeMap<>();
+    HashMap<String, Integer> unsorted_values = new HashMap<>();
 
     try (BufferedReader br = new BufferedReader(new FileReader(data_file))) {
       String line;
@@ -43,10 +43,10 @@ public class FPT {
             record[i] = Integer.parseInt(s[i]);
             String name = s[i] + " " + i;
             
-            if (!values.containsKey(name)) {
-              values.put(name, 1);
+            if (!unsorted_values.containsKey(name)) {
+              unsorted_values.put(name, 1);
             } else {
-              values.put(name, values.get(name) + 1);
+              unsorted_values.put(name, unsorted_values.get(name) + 1);
             }
           }
           
@@ -57,16 +57,19 @@ public class FPT {
       System.out.println("Error: File(" + data_file.getName() + ") could not be read. ");
     }
     
-    ValueComparator sorted = new ValueComparator(values);
-    System.out.println(values);
-    values = new TreeMap<>(sorted);
+    Map values = sortByValue(unsorted_values);
     System.out.println(values);
     
     for(int[] record : data_set) {
       // Insert the record into the FPT according to sort
-      
     }
   }
+  
+  public static Map sortByValue(Map unsortedMap) {
+		Map sortedMap = new TreeMap(new ValueComparator(unsortedMap));
+		sortedMap.putAll(unsortedMap);
+		return sortedMap;
+	}
 }
 
 class FrequentPatternTreeNode {
@@ -113,19 +116,17 @@ class FrequentPatternTreeNode {
   }
 }
 
-class ValueComparator implements Comparator<String> {
-
-    Map<String, Integer> base;
-    public ValueComparator(Map<String, Integer> base) {
-        this.base = base;
-    }
-
-    // Note: this comparator imposes orderings that are inconsistent with equals.    
-    public int compare(String a, String b) {
-        if (base.get(a) >= base.get(b)) {
-            return -1;
-        } else {
-            return 1;
-        } // returning 0 would merge keys
-    }
+class ValueComparator implements Comparator {
+ 
+	Map map;
+ 
+	public ValueComparator(Map map) {
+		this.map = map;
+	}
+ 
+	public int compare(Object keyA, Object keyB) {
+		Comparable valueA = (Comparable) map.get(keyA);
+		Comparable valueB = (Comparable) map.get(keyB);
+		return valueB.compareTo(valueA);
+	}
 }
