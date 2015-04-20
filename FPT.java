@@ -14,11 +14,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class FPT {
 
   private FrequentPatternTreeNode root;
+  private HashMap<String, LinkedList<FrequentPatternTreeNode>> node_link;
+  private ArrayList<String> combinations = new ArrayList<>();
+  private ArrayList<String> tree = new ArrayList<>();
 
   public FPT() {
     root = null;
@@ -47,6 +51,7 @@ public class FPT {
             String name = s[i] + " " + i;
 
             if (!values.containsKey(name)) {
+            	node_link.put(name, null);
               values.put(name, 1);
             } else {
               values.put(name, values.get(name) + 1);
@@ -78,25 +83,37 @@ public class FPT {
       }
       insert(keys);
     }
-    print(root, "", threshold);
-  }
+    
+    for(Map.Entry<String, LinkedList<FrequentPatternTreeNode>> entry : node_link.entrySet()) {
+      intialize_node_link(entry.getKey(), root);
+    }
+    
+    print(root, "", threshold, "");
 
-  private void print(FrequentPatternTreeNode F, String tabs, int threshold) {
-    if (F.get_children() != null) {
-      for (Map.Entry<FrequentPatternTreeNode, Integer> entry : F.get_children().entrySet()) {
-        if (entry.getValue() >= threshold) {
-          System.out.println(tabs + "[" + entry.getKey().get_name() + "]:" + entry.getValue());
-          print(entry.getKey(), tabs + "\t", threshold);
-        }
-      }
+    for (String s : combinations) {
+      System.out.println(s);
     }
 
+    for (String s : tree) {
+      System.out.println(s);
+    }
+  }
+
+  private void initialize_node_link(String name, FrequentPatternTreeNode F){
+  	if (F.get_children() != null) {
+      for (Map.Entry<FrequentPatternTreeNode, Integer> entry : F.get_children().entrySet()) {
+        if (entry.getKey().get_name().equals(name)) {
+        	node_link.get(name).add(entry.getKey());
+        }
+        initialize_node_link(name, entry.getKey());
+      }
+    }
   }
 
   private void insert(String[] record) {
     if (root == null) {
       root = new FrequentPatternTreeNode(null);
-      root.set_name("root");
+      root.set_name("");
       insert(root, record);
     } else {
       insert(root, record);
@@ -133,6 +150,21 @@ public class FPT {
 
       if (substr.length > 1) {
         insert(lookup, substr);
+      }
+    }
+  }
+
+  private void print(FrequentPatternTreeNode F, String tabs, int threshold, String combo) {
+    if (F.get_children() != null) {
+      for (Map.Entry<FrequentPatternTreeNode, Integer> entry : F.get_children().entrySet()) {
+        if (entry.getValue() >= threshold) {
+          tree.add(tabs + "[" + entry.getKey().get_name() + "]:" + entry.getValue());
+          if (combo.length() > 6) {
+            combinations.add("[ " + combo + " (" + entry.getKey().get_name() + "): " + entry.getValue() + " ]");
+          }
+
+          print(entry.getKey(), tabs + "\t", threshold, combo + " (" + entry.getKey().get_name() + ") ");
+        }
       }
     }
   }
