@@ -24,7 +24,7 @@ public class FPT {
     root = null;
   }
 
-  public void run() {
+  public void run(int threshold) {
     File data_file = new File("dataset.csv");
     ArrayList<int[]> data_set = new ArrayList<>();
     HashMap<String, Integer> values = new HashMap<>();
@@ -37,6 +37,10 @@ public class FPT {
         if (!line.startsWith("N")) {
           int[] record = new int[7];
           String[] s = line.split(",");
+
+          if (s.length == 0) {
+            break;
+          }
 
           for (int i = 0; i < s.length; i++) {
             record[i] = Integer.parseInt(s[i]);
@@ -62,7 +66,7 @@ public class FPT {
       for (int i = 0; i < record.length; i++) {
         keys[i] = record[i] + " " + i;
       }
-      
+
       for (int i = 0; i < record.length; i++) {
         for (int j = i + 1; j < record.length - 1; j++) {
           if (values.get(keys[i]) < values.get(keys[j])) {
@@ -71,50 +75,65 @@ public class FPT {
             keys[j] = temp;
           }
         }
-        
-        insert(keys);
+      }
+      insert(keys);
+    }
+    print(root, "", threshold);
+  }
+
+  private void print(FrequentPatternTreeNode F, String tabs, int threshold) {
+    if (F.get_children() != null) {
+      for (Map.Entry<FrequentPatternTreeNode, Integer> entry : F.get_children().entrySet()) {
+        if (entry.getValue() >= threshold) {
+          System.out.println(tabs + "[" + entry.getKey().get_name() + "]:" + entry.getValue());
+          print(entry.getKey(), tabs + "\t", threshold);
+        }
       }
     }
+
   }
-  
+
   private void insert(String[] record) {
     if (root == null) {
       root = new FrequentPatternTreeNode(null);
+      root.set_name("root");
       insert(root, record);
     } else {
       insert(root, record);
     }
   }
-  
+
   private void insert(FrequentPatternTreeNode F, String[] S) {
     String[] substr;
-    
-    if (S.length == 0) {
-      return;
-    } else if (S.length > 1) {
-      substr =  Arrays.copyOfRange(S, 1, S.length);
+
+    if (S.length > 1) {
+      substr = Arrays.copyOfRange(S, 1, S.length);
     } else {
       substr = new String[]{S[0]};
     }
-    
-    
-    if(F.get_children() == null) {
+
+    if (F.get_children() == null) {
       FrequentPatternTreeNode newNode = new FrequentPatternTreeNode(null);
       newNode.set_name(S[0]);
       F.set_new_child(newNode);
-      
-      insert(newNode,substr);
+
+      if (substr.length > 1) {
+        insert(newNode, substr);
+      }
     } else {
       FrequentPatternTreeNode lookup = F.find_node(S[0]);
-      
+
       if (lookup != null) {
         F.increment_child_frequency(lookup);
       } else {
+        lookup = new FrequentPatternTreeNode(null);
+        lookup.set_name(S[0]);
         F.set_new_child(lookup);
       }
-      
-      if(substr.length != 1)
+
+      if (substr.length > 1) {
         insert(lookup, substr);
+      }
     }
   }
 }
@@ -128,7 +147,7 @@ class FrequentPatternTreeNode {
     children = c;
   }
 
-  public HashMap get_children() {
+  public HashMap<FrequentPatternTreeNode, Integer> get_children() {
     return children;
   }
 
@@ -147,9 +166,10 @@ class FrequentPatternTreeNode {
   }
 
   public void set_new_child(FrequentPatternTreeNode f) {
-    if (children == null) 
+    if (children == null) {
       children = new HashMap<>();
-    
+    }
+
     if (!children.containsKey(f)) {
       children.put(f, 1);
     } else {
@@ -164,14 +184,13 @@ class FrequentPatternTreeNode {
       System.out.println("Error: 'Key (" + f.get_name() + ") in node (" + get_name() + ") does not exist.' ");
     }
   }
-  
+
   public FrequentPatternTreeNode find_node(String name) {
     for (Map.Entry<FrequentPatternTreeNode, Integer> entry : children.entrySet()) {
-      if(entry.getKey().get_name().equals(name)) {
+      if (entry.getKey().get_name().equals(name)) {
         return entry.getKey();
       }
     }
     return null;
   }
 }
-
